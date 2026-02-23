@@ -1,21 +1,21 @@
 /**
- * Runtime constants derived from Vite env vars.
+ * Runtime constants derived from the current window location.
  *
- * In development set VITE_API_URL / VITE_WS_URL in .env.local.
- * In production (client served from the same origin as the Go server)
- * leave them unset — the defaults point at the same host.
+ * Because the React client is served from the same origin as the Go server,
+ * both URLs are derived from window.location so they work on any IP, domain,
+ * or port without configuration.
  *
- * Example .env.local for local dev:
+ * In development, override via .env.local:
  *   VITE_API_URL=http://localhost:3000
  *   VITE_WS_URL=ws://localhost:3000
  */
 
 export const API_BASE: string =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3000';
+  (import.meta.env.VITE_API_URL as string | undefined) ?? window.location.origin;
 
 export const WS_BASE: string =
   (import.meta.env.VITE_WS_URL as string | undefined) ??
-  API_BASE.replace(/^http/, 'ws');
+  window.location.origin.replace(/^http/, 'ws');
 
 /**
  * For the single-server MVP, every connection targets the same instance.
