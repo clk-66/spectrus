@@ -8,6 +8,7 @@ import { getStoredTokens, apiFetch } from '../api/client';
 import { getCategories } from '../api/channels';
 import { API_BASE, WS_BASE } from '../constants';
 import { SpectrusSocket } from '../ws/SpectrusSocket';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import { ServerRail } from './ServerRail';
 import { ChannelSidebar } from './ChannelSidebar';
 import { ContentArea } from './ContentArea';
@@ -29,19 +30,23 @@ export function AppShell() {
     let socket: SpectrusSocket | undefined;
 
     (async () => {
+      console.debug('[AppShell] bootstrap start', { API_BASE, WS_BASE, serverId });
+
       const tokens = await getStoredTokens(serverId);
       if (!tokens) {
-        // Tokens were cleared externally — log out
+        console.warn('[AppShell] no stored tokens for serverId', serverId);
         clearAuth();
         navigate('/login', { replace: true });
         return;
       }
+      console.debug('[AppShell] tokens found, fetching server info + categories');
 
       // Bootstrap: fetch server identity + channel list in parallel
       const [serverInfo, channelData] = await Promise.all([
         apiFetch<{ name: string }>(API_BASE, serverId, '/servers/@me'),
         getCategories(API_BASE, serverId),
       ]);
+      console.debug('[AppShell] bootstrap API calls succeeded', { serverInfo, channelData });
 
       addServer({
         server: {
@@ -57,15 +62,18 @@ export function AppShell() {
       setCategories(serverId, channelData.categories, channelData.uncategorized);
       setActiveServerId(serverId);
 
-      // Connect WebSocket
+      // Connect WebSocket — token passed as ?token= because browsers cannot
+      // set Authorization headers on WS upgrade requests.
+      console.debug('[AppShell] connecting WebSocket', `${WS_BASE}/ws`);
       socket = new SpectrusSocket(
         `${WS_BASE}/ws`,
         tokens.accessToken,
         serverId
       );
       setSocket(serverId, socket);
+      console.debug('[AppShell] bootstrap complete');
     })().catch((err: unknown) => {
-      console.error('AppShell bootstrap failed', err);
+      console.error('[AppShell] bootstrap failed', err);
     });
 
     return () => {
@@ -76,11 +84,13 @@ export function AppShell() {
   // ^ Intentionally runs once on mount. Auth state won't change while AppShell is mounted.
 
   return (
-    <div className={styles.shell}>
-      <ServerRail />
-      <ChannelSidebar />
-      <ContentArea />
-      <ServerSettings />
-    </div>
+    <ErrorBoundary>
+      <div className={styles.shell}>
+        <ServerRail />
+        <ChannelSidebar />
+        <ContentArea />
+        <ServerSettings />
+      </div>
+    </ErrorBoundary>
   );
 }

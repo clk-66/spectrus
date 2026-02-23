@@ -95,14 +95,22 @@ func main() {
 	// Public invite preview — no auth (called before the user has an account)
 	r.Get("/invites/{token}", invitesHandler.GetPreview)
 
+	// WebSocket upgrade — outside the auth middleware group because browsers
+	// cannot set custom headers on WS upgrade requests. The token is passed
+	// as a ?token= query param and validated here directly.
+	r.Get("/ws", func(w http.ResponseWriter, r *http.Request) {
+		token := r.URL.Query().Get("token")
+		claims, err := auth.ValidateAccessToken(token, cfg.JWTSecret)
+		if err != nil {
+			http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
+			return
+		}
+		wsHub.ServeWS(w, r, claims.UserID)
+	})
+
 	// Protected endpoints
 	r.Group(func(r chi.Router) {
 		r.Use(mw.Auth(cfg.JWTSecret))
-
-		// WebSocket upgrade
-		r.Get("/ws", func(w http.ResponseWriter, r *http.Request) {
-			wsHub.ServeWS(w, r, mw.GetUserID(r.Context()))
-		})
 
 		// Server metadata
 		r.Get("/servers/@me", func(w http.ResponseWriter, r *http.Request) {
