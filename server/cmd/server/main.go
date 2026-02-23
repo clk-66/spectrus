@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"embed"
 	"encoding/json"
 	"errors"
@@ -70,6 +71,7 @@ func main() {
 		slog.Error("seed default roles", "err", err)
 		os.Exit(1)
 	}
+	bootstrapAdminUser(context.Background(), database, authSvc, rolesSvc)
 	rolesHandler := roles.NewHandler(database, rolesSvc, wsHub)
 
 	pluginsSvc := plugins.NewService(database)
@@ -257,4 +259,52 @@ func main() {
 		slog.Error("server stopped", "err", err)
 		os.Exit(1)
 	}
+}
+
+// bootstrapAdminUser creates the first admin account when the database has no
+// users yet. It is called once at startup, after role seeding, and is a no-op
+// on every subsequent start once a user exists.
+func bootstrapAdminUser(ctx context.Context, database *sql.DB, authSvc *auth.Service, rolesSvc *roles.Service) {
+	var userCount int
+	if err := database.QueryRowContext(ctx, `SELECT COUNT(*) FROM users`).Scan(&userCount); err != nil {
+		slog.Error("admin bootstrap: count users", "err", err)
+		return
+	}
+	if userCount > 0 {
+		return // users already exist — nothing to do
+	}
+
+	adminUser := os.Getenv("SPECTRUS_ADMIN_EMAIL")
+	adminPass := os.Getenv("SPECTRUS_ADMIN_PASSWORD")
+
+	if adminUser == "" || adminPass == "" {
+		slog.Warn("no users exist — set SPECTRUS_ADMIN_EMAIL and SPECTRUS_ADMIN_PASSWORD to create the initial admin account automatically")
+		return
+	}
+
+	user, _, err := authSvc.Register(ctx, auth.RegisterInput{
+		Username:    adminUser,
+		DisplayName: adminUser,
+		Password:    adminPass,
+	})
+	if err != nil {
+		slog.Error("admin bootstrap: create user", "err", err)
+		return
+	}
+
+	// Find the admin role seeded by rolesSvc.SeedDefaults.
+	var adminRoleID string
+	if err := database.QueryRowContext(ctx,
+		`SELECT id FROM roles WHERE name = 'admin' LIMIT 1`,
+	).Scan(&adminRoleID); err != nil {
+		slog.Error("admin bootstrap: find admin role", "err", err)
+		return
+	}
+
+	if err := rolesSvc.AssignRole(ctx, user.ID, adminRoleID); err != nil {
+		slog.Error("admin bootstrap: assign admin role", "err", err)
+		return
+	}
+
+	slog.Info("created initial admin user — remove SPECTRUS_ADMIN_EMAIL and SPECTRUS_ADMIN_PASSWORD from your environment", "username", adminUser)
 }

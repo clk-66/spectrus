@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { login } from '../../api/auth';
 import { useAuthStore } from '../../stores/useAuthStore';
 import styles from './Auth.module.css';
@@ -167,18 +167,6 @@ export function Login() {
           </button>
 
         </form>
-
-        {/* Switch link — preserves ?host= so Register logs into the same server */}
-        <p className={styles.switchLink}>
-          Don't have an account?{' '}
-          <Link
-            to={`/register?host=${encodeURIComponent(host)}`}
-            state={{ from }}
-            className={styles.link}
-          >
-            Create one
-          </Link>
-        </p>
 
         {/* Desktop app notice */}
         <p className={styles.notice}>
