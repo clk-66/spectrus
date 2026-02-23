@@ -2,11 +2,14 @@ package main
 
 import (
 	"context"
+	"embed"
 	"encoding/json"
 	"errors"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 
@@ -25,6 +28,9 @@ import (
 	"github.com/clk-66/spectrus/internal/plugins"
 	"github.com/clk-66/spectrus/internal/roles"
 )
+
+//go:embed all:client/dist
+var clientDist embed.FS
 
 func main() {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
@@ -217,6 +223,25 @@ func main() {
 		r.Post("/plugins", pluginsHandler.Install)
 		r.Patch("/plugins/{id}", pluginsHandler.SetEnabled)
 		r.Delete("/plugins/{id}", pluginsHandler.Delete)
+	})
+
+	// SPA static file handler — serves the embedded React client.
+	// Registered last so all API routes take priority.
+	// Any path that doesn't resolve to a real file falls back to index.html
+	// so React Router can handle client-side navigation.
+	distFS, err := fs.Sub(clientDist, "client/dist")
+	if err != nil {
+		slog.Error("embed sub", "err", err)
+		os.Exit(1)
+	}
+	fileServer := http.FileServer(http.FS(distFS))
+	r.Get("/*", func(w http.ResponseWriter, r *http.Request) {
+		path := strings.TrimPrefix(r.URL.Path, "/")
+		if _, err := distFS.Open(path); err != nil {
+			// Unknown path — rewrite to root so the file server returns index.html.
+			r.URL.Path = "/"
+		}
+		fileServer.ServeHTTP(w, r)
 	})
 
 	slog.Info("server listening", "port", cfg.Port)

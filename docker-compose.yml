@@ -6,7 +6,8 @@ services:
   # ---------------------------------------------------------------------------
   server:
     build:
-      context: ./server
+      context: .
+      dockerfile: server/Dockerfile
     image: ghcr.io/clk-66/spectrus-server:latest
     restart: unless-stopped
     ports:
