@@ -1,18 +1,16 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../stores/useAuthStore';
-import { getStoredTokens } from '../api/client';
 
 /**
- * Wraps protected routes. Redirects to /login if:
+ * Wraps protected routes. Redirects to /welcome if:
  *  - no persisted currentUser in useAuthStore, OR
- *  - no stored tokens in localStorage (tokens were manually cleared)
+ *  - no serverHost (user has not joined any server yet)
  */
 export function ProtectedRoute() {
-  const { currentUser, serverId } = useAuthStore();
-  const hasTokens = getStoredTokens(serverId) !== null;
+  const { currentUser, serverHost } = useAuthStore();
 
-  if (!currentUser || !hasTokens) {
-    return <Navigate to="/login" replace />;
+  if (!currentUser || !serverHost) {
+    return <Navigate to="/welcome" replace />;
   }
 
   return <Outlet />;

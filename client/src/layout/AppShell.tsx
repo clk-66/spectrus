@@ -6,7 +6,6 @@ import { useServersStore } from '../stores/useServersStore';
 import { useChannelsStore } from '../stores/useChannelsStore';
 import { getStoredTokens, apiFetch } from '../api/client';
 import { getCategories } from '../api/channels';
-import { API_BASE, WS_BASE } from '../constants';
 import { SpectrusSocket } from '../ws/SpectrusSocket';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { ServerRail } from './ServerRail';
@@ -17,40 +16,40 @@ import styles from './AppShell.module.css';
 
 export function AppShell() {
   const navigate = useNavigate();
-  const { currentUser, serverId, clearAuth } = useAuthStore();
+  const { currentUser, serverHost, clearAuth } = useAuthStore();
   const { setActiveServerId } = useUIStore();
   const { addServer, setSocket } = useServersStore();
   const setCategories = useChannelsStore((s) => s.setCategories);
 
   useEffect(() => {
-    if (!currentUser || !serverId) return;
+    if (!currentUser || !serverHost) return;
 
     // socket ref so the cleanup function can always reach it, even when the
     // async IIFE sets it after this synchronous block returns.
     let socket: SpectrusSocket | undefined;
 
     (async () => {
-      console.debug('[AppShell] bootstrap start', { API_BASE, WS_BASE, serverId });
+      console.debug('[AppShell] bootstrap start', { serverHost });
 
-      const tokens = await getStoredTokens(serverId);
+      // serverHost is used as both the API base URL and the token storage key
+      const tokens = await getStoredTokens(serverHost);
       if (!tokens) {
-        console.warn('[AppShell] no stored tokens for serverId', serverId);
+        console.warn('[AppShell] no stored tokens for serverHost', serverHost);
         clearAuth();
-        navigate('/login', { replace: true });
+        navigate('/welcome', { replace: true });
         return;
       }
       console.debug('[AppShell] tokens found, fetching server info + categories');
 
-      // Bootstrap: fetch server identity + channel list in parallel
       const [serverInfo, channelData] = await Promise.all([
-        apiFetch<{ name: string }>(API_BASE, serverId, '/servers/@me'),
-        getCategories(API_BASE, serverId),
+        apiFetch<{ name: string }>(serverHost, serverHost, '/servers/@me'),
+        getCategories(serverHost, serverHost),
       ]);
-      console.debug('[AppShell] bootstrap API calls succeeded', { serverInfo, channelData });
+      console.debug('[AppShell] bootstrap API calls succeeded', { serverInfo });
 
       addServer({
         server: {
-          id: serverId,
+          id: serverHost,
           name: serverInfo.name,
           ownerId: '',
           createdAt: '',
@@ -59,18 +58,13 @@ export function AppShell() {
         currentUser,
         socket: null,
       });
-      setCategories(serverId, channelData.categories, channelData.uncategorized);
-      setActiveServerId(serverId);
+      setCategories(serverHost, channelData.categories, channelData.uncategorized);
+      setActiveServerId(serverHost);
 
-      // Connect WebSocket — token passed as ?token= because browsers cannot
-      // set Authorization headers on WS upgrade requests.
-      console.debug('[AppShell] connecting WebSocket', `${WS_BASE}/ws`);
-      socket = new SpectrusSocket(
-        `${WS_BASE}/ws`,
-        tokens.accessToken,
-        serverId
-      );
-      setSocket(serverId, socket);
+      const wsHost = serverHost.replace(/^http/, 'ws');
+      console.debug('[AppShell] connecting WebSocket', `${wsHost}/ws`);
+      socket = new SpectrusSocket(`${wsHost}/ws`, tokens.accessToken, serverHost);
+      setSocket(serverHost, socket);
       console.debug('[AppShell] bootstrap complete');
     })().catch((err: unknown) => {
       console.error('[AppShell] bootstrap failed', err);

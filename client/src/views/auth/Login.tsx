@@ -1,9 +1,7 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { login } from '../../api/auth';
 import { useAuthStore } from '../../stores/useAuthStore';
-import { useUIStore } from '../../stores/useUIStore';
-import { API_BASE, DEFAULT_SERVER_ID } from '../../constants';
 import styles from './Auth.module.css';
 
 // ---- Validation ----------------------------------------------------------
@@ -31,20 +29,22 @@ function validate(username: string, password: string): FieldErrors {
 // ---- Component -----------------------------------------------------------
 
 export function Login() {
-  const navigate  = useNavigate();
-  const location  = useLocation();
-  const setAuth   = useAuthStore((s) => s.setAuth);
-  const setActiveServerId = useUIStore((s) => s.setActiveServerId);
+  const navigate       = useNavigate();
+  const location       = useLocation();
+  const [searchParams] = useSearchParams();
+  const setAuth        = useAuthStore((s) => s.setAuth);
+
+  // The server this login belongs to — passed as ?host= by JoinServer.
+  const host = searchParams.get('host') ?? window.location.origin;
   // Redirect back to the originating route after login (e.g. /invite/:token?join=1)
   const from = (location.state as { from?: string } | null)?.from ?? '/';
 
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [formError, setFormError] = useState('');
-  const [loading, setLoading] = useState(false);
-  // Only show field errors after the first submission attempt
-  const [touched, setTouched] = useState(false);
+  const [username,     setUsername]     = useState('');
+  const [password,     setPassword]     = useState('');
+  const [fieldErrors,  setFieldErrors]  = useState<FieldErrors>({});
+  const [formError,    setFormError]    = useState('');
+  const [loading,      setLoading]      = useState(false);
+  const [touched,      setTouched]      = useState(false);
 
   function revalidate(u = username, p = password) {
     if (touched) setFieldErrors(validate(u, p));
@@ -63,9 +63,9 @@ export function Login() {
 
     setLoading(true);
     try {
-      const { user } = await login(API_BASE, DEFAULT_SERVER_ID, username.trim(), password);
-      setAuth(user);
-      setActiveServerId(DEFAULT_SERVER_ID);
+      // `host` is used as both the API base URL and the token storage key
+      const { user } = await login(host, host, username.trim(), password);
+      setAuth(user, host);
       navigate(from, { replace: true });
     } catch (err) {
       setFormError(
@@ -76,6 +76,10 @@ export function Login() {
     }
   }
 
+  const hostLabel = (() => {
+    try { return new URL(host).hostname; } catch { return host; }
+  })();
+
   return (
     <div className={styles.viewport}>
       <div className={styles.card}>
@@ -83,7 +87,7 @@ export function Login() {
         {/* Wordmark */}
         <div className={styles.wordmark}>
           <span className={styles.logo}>Spectrus</span>
-          <p className={styles.tagline}>Your community. Your server.</p>
+          <p className={styles.tagline}>Sign in to <strong>{hostLabel}</strong></p>
         </div>
 
         {/* Form */}
@@ -164,10 +168,16 @@ export function Login() {
 
         </form>
 
-        {/* Switch link */}
+        {/* Switch link — preserves ?host= so Register logs into the same server */}
         <p className={styles.switchLink}>
           Don't have an account?{' '}
-          <Link to="/register" className={styles.link}>Create one</Link>
+          <Link
+            to={`/register?host=${encodeURIComponent(host)}`}
+            state={{ from }}
+            className={styles.link}
+          >
+            Create one
+          </Link>
         </p>
 
       </div>

@@ -1,9 +1,7 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { register } from '../../api/auth';
 import { useAuthStore } from '../../stores/useAuthStore';
-import { useUIStore } from '../../stores/useUIStore';
-import { API_BASE, DEFAULT_SERVER_ID } from '../../constants';
 import styles from './Auth.module.css';
 
 // ---- Validation ----------------------------------------------------------
@@ -39,17 +37,23 @@ function validate(username: string, password: string, confirm: string): FieldErr
 // ---- Component -----------------------------------------------------------
 
 export function Register() {
-  const navigate = useNavigate();
-  const setAuth = useAuthStore((s) => s.setAuth);
-  const setActiveServerId = useUIStore((s) => s.setActiveServerId);
+  const navigate       = useNavigate();
+  const location       = useLocation();
+  const [searchParams] = useSearchParams();
+  const setAuth        = useAuthStore((s) => s.setAuth);
 
-  const [username, setUsername]   = useState('');
-  const [password, setPassword]   = useState('');
-  const [confirm,  setConfirm]    = useState('');
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [formError, setFormError] = useState('');
-  const [loading, setLoading]     = useState(false);
-  const [touched, setTouched]     = useState(false);
+  // The server this registration belongs to — passed as ?host= by Login/JoinServer.
+  const host = searchParams.get('host') ?? window.location.origin;
+  // Return destination after successful registration (e.g. back to the invite)
+  const from = (location.state as { from?: string } | null)?.from ?? '/';
+
+  const [username,     setUsername]     = useState('');
+  const [password,     setPassword]     = useState('');
+  const [confirm,      setConfirm]      = useState('');
+  const [fieldErrors,  setFieldErrors]  = useState<FieldErrors>({});
+  const [formError,    setFormError]    = useState('');
+  const [loading,      setLoading]      = useState(false);
+  const [touched,      setTouched]      = useState(false);
 
   function revalidate(u = username, p = password, c = confirm) {
     if (touched) setFieldErrors(validate(u, p, c));
@@ -68,11 +72,9 @@ export function Register() {
 
     setLoading(true);
     try {
-      // register auto-logs in and returns tokens + user
-      const { user } = await register(API_BASE, DEFAULT_SERVER_ID, username.trim(), password);
-      setAuth(user);
-      setActiveServerId(DEFAULT_SERVER_ID);
-      navigate('/', { replace: true });
+      const { user } = await register(host, host, username.trim(), password);
+      setAuth(user, host);
+      navigate(from, { replace: true });
     } catch (err) {
       setFormError(
         err instanceof Error ? err.message : 'Registration failed. Please try again.'
@@ -82,6 +84,10 @@ export function Register() {
     }
   }
 
+  const hostLabel = (() => {
+    try { return new URL(host).hostname; } catch { return host; }
+  })();
+
   return (
     <div className={styles.viewport}>
       <div className={styles.card}>
@@ -89,7 +95,7 @@ export function Register() {
         {/* Wordmark */}
         <div className={styles.wordmark}>
           <span className={styles.logo}>Spectrus</span>
-          <p className={styles.tagline}>Your community. Your server.</p>
+          <p className={styles.tagline}>Create an account on <strong>{hostLabel}</strong></p>
         </div>
 
         {/* Form */}
@@ -199,10 +205,16 @@ export function Register() {
 
         </form>
 
-        {/* Switch link */}
+        {/* Switch link — preserves ?host= so Login targets the same server */}
         <p className={styles.switchLink}>
           Already have an account?{' '}
-          <Link to="/login" className={styles.link}>Sign in</Link>
+          <Link
+            to={`/login?host=${encodeURIComponent(host)}`}
+            state={{ from }}
+            className={styles.link}
+          >
+            Sign in
+          </Link>
         </p>
 
       </div>

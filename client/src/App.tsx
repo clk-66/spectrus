@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AppShell } from './layout/AppShell';
+import { Welcome } from './views/welcome/Welcome';
 import { Login } from './views/auth/Login';
 import { Register } from './views/auth/Register';
 import { JoinServer } from './views/joinServer/JoinServer';
@@ -93,16 +94,22 @@ export default function App() {
       <DeepLinkHandler />
       <UpdateChecker />
       <Routes>
+        {/* Entry point for new users / users with no servers */}
+        <Route path="/welcome"         element={<Welcome />} />
+
+        {/* Server-contextual auth — host passed as ?host= query param */}
         <Route path="/login"           element={<Login />} />
         <Route path="/register"        element={<Register />} />
+
+        {/* Invite flow — host passed as ?host= query param */}
         <Route path="/invite/:token"   element={<JoinServer />} />
 
-        {/* All protected routes */}
+        {/* Protected app shell */}
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<AppShell />} />
         </Route>
 
-        {/* Catch-all → root (ProtectedRoute will redirect to /login if needed) */}
+        {/* Catch-all → root (ProtectedRoute redirects to /welcome if needed) */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

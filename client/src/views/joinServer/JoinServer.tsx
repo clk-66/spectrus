@@ -9,7 +9,6 @@ import { getInvitePreview, useInvite } from '../../api/invites';
 import { apiFetch, ApiError, getStoredTokens } from '../../api/client';
 import { getCategories } from '../../api/channels';
 import { SpectrusSocket } from '../../ws/SpectrusSocket';
-import { API_BASE, WS_BASE, DEFAULT_SERVER_ID } from '../../constants';
 import type { InvitePreview } from '../../types';
 import styles from './JoinServer.module.css';
 
@@ -56,16 +55,28 @@ export function JoinServer() {
   const location       = useLocation();
   const [searchParams] = useSearchParams();
 
-  const currentUser    = useAuthStore((s) => s.currentUser);
-  const serverId       = useAuthStore((s) => s.serverId);
+  // Resolve the server host in priority order:
+  //  1. ?host= query param (set by Welcome / ServerRail "+" flow)
+  //  2. sessionStorage (set by Tauri deep-link handler)
+  //  3. Current window origin (fallback for bare-token invites on same server)
+  const serverHost = (
+    searchParams.get('host') ??
+    sessionStorage.getItem('spectrus:join-host') ??
+    window.location.origin
+  );
+  const wsHost = serverHost.replace(/^http/, 'ws');
+
+  const currentUser       = useAuthStore((s) => s.currentUser);
+  const authServerHost    = useAuthStore((s) => s.serverHost);
   const setActiveServerId = useUIStore((s) => s.setActiveServerId);
   const { addServer, setSocket } = useServersStore();
-  const setCategories  = useChannelsStore((s) => s.setCategories);
-  const serverInStore  = useServersStore((s) => s.servers.has(DEFAULT_SERVER_ID));
+  const setCategories     = useChannelsStore((s) => s.setCategories);
 
-  // Token presence is confirmed by the auth store having both fields; the
-  // async keychain read isn't needed here — bootstrapAndNavigate checks tokens.
-  const isAuthenticated = !!currentUser && !!serverId;
+  // Is the user already authenticated against THIS server?
+  const isAuthenticated = !!currentUser && authServerHost === serverHost;
+
+  // Is this server already loaded into the in-memory store?
+  const serverInStore = useServersStore((s) => s.servers.has(serverHost));
 
   const [loadState, setLoadState] = useState<LoadState>({ phase: 'loading' });
   const [joining,   setJoining]   = useState(false);
@@ -83,7 +94,7 @@ export function JoinServer() {
     setLoadState({ phase: 'loading' });
     setJoinError('');
 
-    getInvitePreview(API_BASE, token)
+    getInvitePreview(serverHost, token)
       .then((preview) => setLoadState({ phase: 'ready', preview }))
       .catch((err: unknown) => {
         if (err instanceof ApiError) {
@@ -102,45 +113,47 @@ export function JoinServer() {
           setLoadState({ phase: 'error', retry: fetchPreview });
         }
       });
-  }, [token]);
+  }, [serverHost, token]);
 
   useEffect(() => { fetchPreview(); }, [fetchPreview]);
 
   // ---- Bootstrap after a successful join ---------------------------------
 
   const bootstrapAndNavigate = useCallback(async () => {
-    const tokens = await getStoredTokens(DEFAULT_SERVER_ID);
+    // serverHost is used as both the API base URL and the client-side map key
+    const tokens = await getStoredTokens(serverHost);
     if (!tokens || !currentUser) return;
 
     const [serverInfo, channelData] = await Promise.all([
-      apiFetch<{ name: string }>(API_BASE, DEFAULT_SERVER_ID, '/servers/@me'),
-      getCategories(API_BASE, DEFAULT_SERVER_ID),
+      apiFetch<{ name: string }>(serverHost, serverHost, '/servers/@me'),
+      getCategories(serverHost, serverHost),
     ]);
 
     addServer({
-      server: { id: DEFAULT_SERVER_ID, name: serverInfo.name, ownerId: '', createdAt: '' },
+      server: { id: serverHost, name: serverInfo.name, ownerId: '', createdAt: '' },
       tokens,
       currentUser,
       socket: null,
     });
-    setCategories(DEFAULT_SERVER_ID, channelData.categories, channelData.uncategorized);
+    setCategories(serverHost, channelData.categories, channelData.uncategorized);
 
-    const socket = new SpectrusSocket(`${WS_BASE}/ws`, tokens.accessToken, DEFAULT_SERVER_ID);
-    setSocket(DEFAULT_SERVER_ID, socket);
-    setActiveServerId(DEFAULT_SERVER_ID);
+    const socket = new SpectrusSocket(`${wsHost}/ws`, tokens.accessToken, serverHost);
+    setSocket(serverHost, socket);
+    setActiveServerId(serverHost);
 
     navigate('/', { replace: true });
-  }, [currentUser, addServer, setCategories, setSocket, setActiveServerId, navigate]);
+  }, [
+    serverHost, wsHost, currentUser,
+    addServer, setCategories, setSocket, setActiveServerId, navigate,
+  ]);
 
   // ---- Join handler -------------------------------------------------------
 
   const handleJoin = useCallback(async () => {
-    // Gate 1: must be authenticated
+    // Gate 1: must be authenticated against this specific server
     if (!isAuthenticated) {
-      // Redirect to login, passing back the current path with ?join=1 so
-      // after login the user is automatically returned here to complete the join.
-      navigate('/login', {
-        state: { from: `${location.pathname}?join=1` },
+      navigate(`/login?host=${encodeURIComponent(serverHost)}`, {
+        state: { from: `${location.pathname}${location.search}${location.search ? '&' : '?'}join=1` },
       });
       return;
     }
@@ -149,7 +162,7 @@ export function JoinServer() {
     setJoinError('');
 
     try {
-      await useInvite(API_BASE, DEFAULT_SERVER_ID, token);
+      await useInvite(serverHost, serverHost, token);
     } catch (err: unknown) {
       if (err instanceof ApiError && err.status === 409) {
         // Already a member — skip join, just navigate to the server
@@ -175,7 +188,7 @@ export function JoinServer() {
       setJoining(false);
     }
   }, [
-    isAuthenticated, token, serverInStore, location.pathname,
+    isAuthenticated, serverHost, token, serverInStore, location,
     navigate, bootstrapAndNavigate,
   ]);
 
@@ -253,7 +266,6 @@ export function JoinServer() {
 
   const { preview } = loadState;
 
-  // Determine which action button to render
   const alreadyMember = isAuthenticated && serverInStore;
   const buttonLabel   = joining
     ? 'Joining…'

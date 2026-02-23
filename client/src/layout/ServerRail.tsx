@@ -1,4 +1,5 @@
 import { Plus, Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useUIStore } from '../stores/useUIStore';
 import { useServersStore } from '../stores/useServersStore';
 import { Tooltip } from '../components/Tooltip';
@@ -26,6 +27,7 @@ function idToHue(id: string): number {
 }
 
 export function ServerRail() {
+  const navigate = useNavigate();
   const { activeServerId, setActiveServerId, openServerSettings } = useUIStore();
   // Select the Map reference — only changes when the store actually mutates.
   // Calling s.serverList() inside the selector returns a new Array on every
@@ -86,7 +88,7 @@ export function ServerRail() {
         <button
           className={`${styles.serverBtn} ${styles.actionBtn}`}
           aria-label="Add a server"
-          onClick={() => { /* TODO: open add-server modal */ }}
+          onClick={() => navigate('/welcome')}
         >
           <span className={styles.indicator} aria-hidden />
           <span className={`${styles.icon} ${styles.addIcon}`}>
