@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useUIStore } from '../../../stores/useUIStore';
+import { useAuthStore } from '../../../stores/useAuthStore';
 import { getMembers, getRoles, assignRole, removeRole } from '../../../api/members';
 import { kickMember } from '../../../api/settings';
-import { API_BASE, DEFAULT_SERVER_ID } from '../../../constants';
+import { API_BASE } from '../../../constants';
 import type { Member, Role } from '../../../types';
 import styles from '../ServerSettings.module.css';
 
@@ -11,7 +12,8 @@ function colorToCss(color: number): string {
 }
 
 export function MembersTab() {
-  const activeServerId = useUIStore((s) => s.activeServerId) ?? DEFAULT_SERVER_ID;
+  const serverHost     = useAuthStore((s) => s.serverHost);
+  const activeServerId = useUIStore((s) => s.activeServerId) ?? serverHost;
 
   const [members,     setMembers]     = useState<Member[]>([]);
   const [roles,       setRoles]       = useState<Role[]>([]);

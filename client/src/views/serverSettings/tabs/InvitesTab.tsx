@@ -3,7 +3,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { useUIStore } from '../../../stores/useUIStore';
 import { useAuthStore } from '../../../stores/useAuthStore';
 import { getInvites, createInvite, revokeInvite } from '../../../api/invites';
-import { API_BASE, DEFAULT_SERVER_ID } from '../../../constants';
+import { API_BASE } from '../../../constants';
 import type { Invite } from '../../../types';
 import styles from '../ServerSettings.module.css';
 
@@ -43,8 +43,9 @@ function usesLabel(invite: Invite): string {
 }
 
 export function InvitesTab() {
-  const activeServerId = useUIStore((s) => s.activeServerId) ?? DEFAULT_SERVER_ID;
+  const serverHost     = useAuthStore((s) => s.serverHost);
   const currentUser    = useAuthStore((s) => s.currentUser);
+  const activeServerId = useUIStore((s) => s.activeServerId) ?? serverHost;
 
   const [invites,   setInvites]   = useState<Invite[]>([]);
   const [loading,   setLoading]   = useState(true);

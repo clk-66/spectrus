@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useUIStore } from '../../../stores/useUIStore';
+import { useAuthStore } from '../../../stores/useAuthStore';
 import { getLicenseStatus, updateServerSettings } from '../../../api/settings';
-import { API_BASE, DEFAULT_SERVER_ID } from '../../../constants';
+import { API_BASE } from '../../../constants';
 import { PremiumGate } from '../PremiumGate';
 import styles from '../ServerSettings.module.css';
 
@@ -21,7 +22,8 @@ const ACCENT_PRESETS = [
 // ---- Component ------------------------------------------------------------
 
 export function BrandingTab() {
-  const activeServerId = useUIStore((s) => s.activeServerId) ?? DEFAULT_SERVER_ID;
+  const serverHost     = useAuthStore((s) => s.serverHost);
+  const activeServerId = useUIStore((s) => s.activeServerId) ?? serverHost;
 
   const [isPremium, setIsPremium] = useState(false);
   const [checking,  setChecking]  = useState(true);

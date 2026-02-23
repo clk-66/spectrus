@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { ImagePlus } from 'lucide-react';
 import { useUIStore } from '../../../stores/useUIStore';
+import { useAuthStore } from '../../../stores/useAuthStore';
 import { useServersStore } from '../../../stores/useServersStore';
 import { getServerSettings, updateServerSettings } from '../../../api/settings';
-import { API_BASE, DEFAULT_SERVER_ID } from '../../../constants';
+import { API_BASE } from '../../../constants';
 import styles from '../ServerSettings.module.css';
 
 export function OverviewTab() {
-  const activeServerId    = useUIStore((s) => s.activeServerId) ?? DEFAULT_SERVER_ID;
+  const serverHost        = useAuthStore((s) => s.serverHost);
+  const activeServerId    = useUIStore((s) => s.activeServerId) ?? serverHost;
   const updateServer      = useServersStore((s) => s.updateServer);
 
   const [name,          setName]          = useState('');

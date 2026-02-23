@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Package, Plus, Trash2 } from 'lucide-react';
 import { useUIStore } from '../../../stores/useUIStore';
+import { useAuthStore } from '../../../stores/useAuthStore';
 import { getPlugins, installPlugin, setPluginEnabled, deletePlugin } from '../../../api/plugins';
-import { API_BASE, DEFAULT_SERVER_ID } from '../../../constants';
+import { API_BASE } from '../../../constants';
 import type { Plugin, PluginManifest } from '../../../types';
 import { ApiError } from '../../../api/client';
 import styles from '../ServerSettings.module.css';
@@ -29,7 +30,8 @@ function rawManifestUrl(repoUrl: string): string | null {
 // ---- Component ------------------------------------------------------------
 
 export function PluginsTab() {
-  const activeServerId = useUIStore((s) => s.activeServerId) ?? DEFAULT_SERVER_ID;
+  const serverHost     = useAuthStore((s) => s.serverHost);
+  const activeServerId = useUIStore((s) => s.activeServerId) ?? serverHost;
 
   const [plugins,    setPlugins]   = useState<Plugin[]>([]);
   const [loading,    setLoading]   = useState(true);

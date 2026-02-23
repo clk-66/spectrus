@@ -21,7 +21,7 @@ export function MessageInput({ channelId, channelName }: Props) {
   const [sending, setSending] = useState(false);
   const textareaRef           = useRef<HTMLTextAreaElement>(null);
 
-  const serverId      = useAuthStore((s) => s.serverId);
+  const serverHost    = useAuthStore((s) => s.serverHost);
   const currentUser   = useAuthStore((s) => s.currentUser);
   const activeServerId = useUIStore((s) => s.activeServerId);
   const socket        = useServersStore((s) =>
@@ -70,7 +70,7 @@ export function MessageInput({ channelId, channelName }: Props) {
 
   const submit = useCallback(async () => {
     const trimmed = value.trim();
-    if (!trimmed || trimmed.length > MAX_LENGTH || sending || !serverId) return;
+    if (!trimmed || trimmed.length > MAX_LENGTH || sending || !serverHost) return;
 
     setValue('');
     // Reset textarea height
@@ -86,7 +86,7 @@ export function MessageInput({ channelId, channelName }: Props) {
 
     setSending(true);
     try {
-      await sendMessage(API_BASE, serverId, channelId, trimmed);
+      await sendMessage(API_BASE, serverHost, channelId, trimmed);
     } catch (err) {
       console.error('Failed to send message', err);
       // Restore value on failure
@@ -96,7 +96,7 @@ export function MessageInput({ channelId, channelName }: Props) {
       // Re-focus after send
       setTimeout(() => textareaRef.current?.focus(), 0);
     }
-  }, [value, sending, serverId, channelId]);
+  }, [value, sending, serverHost, channelId]);
 
   // ---- Handlers ----------------------------------------------------------
 

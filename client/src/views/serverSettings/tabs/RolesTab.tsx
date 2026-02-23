@@ -16,9 +16,10 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useUIStore } from '../../../stores/useUIStore';
+import { useAuthStore } from '../../../stores/useAuthStore';
 import { getRoles, getMembers } from '../../../api/members';
 import { createRole, updateRole, deleteRole } from '../../../api/roles';
-import { API_BASE, DEFAULT_SERVER_ID } from '../../../constants';
+import { API_BASE } from '../../../constants';
 import type { Role, Member } from '../../../types';
 import styles from '../ServerSettings.module.css';
 
@@ -112,7 +113,8 @@ function SortableRoleRow({
 // ---- Main component -------------------------------------------------------
 
 export function RolesTab() {
-  const activeServerId = useUIStore((s) => s.activeServerId) ?? DEFAULT_SERVER_ID;
+  const serverHost     = useAuthStore((s) => s.serverHost);
+  const activeServerId = useUIStore((s) => s.activeServerId) ?? serverHost;
 
   const [roles,           setRoles]           = useState<Role[]>([]);
   const [members,         setMembers]         = useState<Member[]>([]);

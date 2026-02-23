@@ -16,6 +16,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useUIStore } from '../../../stores/useUIStore';
+import { useAuthStore } from '../../../stores/useAuthStore';
 import { useChannelsStore } from '../../../stores/useChannelsStore';
 import {
   createCategory,
@@ -24,7 +25,7 @@ import {
   deleteChannel,
 } from '../../../api/channels';
 import { getCategories } from '../../../api/channels';
-import { API_BASE, DEFAULT_SERVER_ID } from '../../../constants';
+import { API_BASE } from '../../../constants';
 import type { Channel, Category } from '../../../types';
 import styles from '../ServerSettings.module.css';
 
@@ -74,7 +75,8 @@ function SortableChannelRow({
 // ---- Main component -------------------------------------------------------
 
 export function ChannelsTab() {
-  const activeServerId   = useUIStore((s) => s.activeServerId) ?? DEFAULT_SERVER_ID;
+  const serverHost       = useAuthStore((s) => s.serverHost);
+  const activeServerId   = useUIStore((s) => s.activeServerId) ?? serverHost;
   const storeCategories  = useChannelsStore((s) => s.categories.get(activeServerId) ?? []);
   const storeUncategorized = useChannelsStore((s) => s.uncategorized.get(activeServerId) ?? []);
   const { setCategories } = useChannelsStore();

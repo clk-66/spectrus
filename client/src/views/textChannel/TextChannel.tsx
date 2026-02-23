@@ -16,7 +16,7 @@ interface Props {
 }
 
 export function TextChannel({ channelId, channelName, topic }: Props) {
-  const serverId = useAuthStore((s) => s.serverId);
+  const serverHost = useAuthStore((s) => s.serverHost);
 
   const channelData = useMessagesStore((s) => s.channels.get(channelId));
   const messages    = channelData?.messages   ?? [];
@@ -29,14 +29,14 @@ export function TextChannel({ channelId, channelName, topic }: Props) {
   // ---- Initial load ------------------------------------------------------
 
   useEffect(() => {
-    if (!serverId) return;
+    if (!serverHost) return;
 
     // Skip fetch if we already have messages for this channel
     const existing = useMessagesStore.getState().channels.get(channelId);
     if (existing && existing.messages.length > 0) return;
 
     setLoadingInitial(true);
-    getMessages(API_BASE, serverId, channelId, { limit: 50 })
+    getMessages(API_BASE, serverHost, channelId, { limit: 50 })
       .then((page) => {
         useMessagesStore
           .getState()
@@ -44,15 +44,15 @@ export function TextChannel({ channelId, channelName, topic }: Props) {
       })
       .catch((err: unknown) => console.error('Failed to load messages', err))
       .finally(() => setLoadingInitial(false));
-  }, [channelId, serverId]);
+  }, [channelId, serverHost]);
 
   // ---- Pagination --------------------------------------------------------
 
   const handleLoadMore = useCallback(async () => {
-    if (!serverId || !cursor || !hasMore || loadingMore) return;
+    if (!serverHost || !cursor || !hasMore || loadingMore) return;
     setLoadingMore(true);
     try {
-      const page = await getMessages(API_BASE, serverId, channelId, {
+      const page = await getMessages(API_BASE, serverHost, channelId, {
         before: cursor,
         limit:  50,
       });
@@ -64,7 +64,7 @@ export function TextChannel({ channelId, channelName, topic }: Props) {
     } finally {
       setLoadingMore(false);
     }
-  }, [serverId, channelId, cursor, hasMore, loadingMore]);
+  }, [serverHost, channelId, cursor, hasMore, loadingMore]);
 
   // ---- Render ------------------------------------------------------------
 

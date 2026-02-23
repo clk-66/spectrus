@@ -102,7 +102,6 @@ function VoiceJoinView({ channelId, channelName }: Props) {
   const [joinError, setJoinError] = useState('');
 
   const currentUser    = useAuthStore((s) => s.currentUser);
-  const serverId       = useAuthStore((s) => s.serverId);   // unused but keeps serverId in scope
   const activeServerId = useUIStore((s) => s.activeServerId);
   const socket         = useServersStore((s) =>
     activeServerId ? (s.servers.get(activeServerId)?.socket ?? null) : null
@@ -139,9 +138,6 @@ function VoiceJoinView({ channelId, channelName }: Props) {
       setJoining(false);
     }
   }, [socket, currentUser, channelId, setVoiceService, setActiveChannel]);
-
-  // Suppress unused variable warning — serverId is kept for potential future use
-  void serverId;
 
   return (
     <div className={styles.voiceChannel}>
