@@ -140,3 +140,13 @@
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+/* ---- Desktop app notice (Login only) ---- */
+
+.notice {
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}

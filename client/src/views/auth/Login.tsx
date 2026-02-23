@@ -180,6 +180,19 @@ export function Login() {
           </Link>
         </p>
 
+        {/* Desktop app notice */}
+        <p className={styles.notice}>
+          Looking to join a server?{' '}
+          <a
+            href="https://github.com/clk-66/spectrus/releases"
+            target="_blank"
+            rel="noreferrer"
+            className={styles.link}
+          >
+            Download the Spectrus desktop app.
+          </a>
+        </p>
+
       </div>
     </div>
   );
