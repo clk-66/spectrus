@@ -20,7 +20,7 @@ type LoadState =
   | { phase: 'expired' }
   | { phase: 'exhausted' }
   | { phase: 'not-found' }
-  | { phase: 'error';    retry: () => void };
+  | { phase: 'error' };
 
 // ---- Sad-face SVG (inline — no external file needed) --------------------
 
@@ -107,10 +107,10 @@ export function JoinServer() {
           } else if (err.status === 404) {
             setLoadState({ phase: 'not-found' });
           } else {
-            setLoadState({ phase: 'error', retry: fetchPreview });
+            setLoadState({ phase: 'error' });
           }
         } else {
-          setLoadState({ phase: 'error', retry: fetchPreview });
+          setLoadState({ phase: 'error' });
         }
       });
   }, [serverHost, token]);
@@ -257,7 +257,7 @@ export function JoinServer() {
       <ErrorCard
         title="Something went wrong"
         desc="Could not load the invite. Check your connection and try again."
-        onRetry={loadState.retry}
+        onRetry={() => navigate('/welcome')}
       />
     );
   }
