@@ -19,8 +19,15 @@ import { useAuthStore } from '../stores/useAuthStore';
 import { useServersStore } from '../stores/useServersStore';
 import { Tooltip } from '../components/Tooltip';
 import { VoiceConnectedBar } from '../views/voiceChannel/VoiceConnectedBar';
-import type { Channel } from '../types';
+import type { Channel, Category, Member } from '../types';
 import styles from './ChannelSidebar.module.css';
+
+// Stable empty-array sentinels. Using an inline `?? []` inside a Zustand
+// selector creates a new array reference on every call, causing Object.is to
+// always return false and triggering an infinite re-render loop.
+const EMPTY_CATEGORIES: Category[] = [];
+const EMPTY_CHANNELS: Channel[] = [];
+const EMPTY_MEMBERS: Member[] = [];
 
 /** Category section — collapsible */
 function CategorySection({
@@ -95,15 +102,15 @@ function ChannelRow({
 export function ChannelSidebar() {
   const { activeServerId, activeChannelId, setActiveChannelId, theme, toggleTheme, openServerSettings } = useUIStore();
   const categories = useChannelsStore((s) =>
-    activeServerId ? (s.categories.get(activeServerId) ?? []) : []
+    activeServerId ? (s.categories.get(activeServerId) ?? EMPTY_CATEGORIES) : EMPTY_CATEGORIES
   );
   const uncategorized = useChannelsStore((s) =>
-    activeServerId ? (s.uncategorized.get(activeServerId) ?? []) : []
+    activeServerId ? (s.uncategorized.get(activeServerId) ?? EMPTY_CHANNELS) : EMPTY_CHANNELS
   );
   const { isMuted, isDeafened, setMuted, setDeafened } = useVoiceStore();
   const channelMembers = useVoiceStore((s) => s.channelMembers);
   const members = useMembersStore((s) =>
-    activeServerId ? (s.members.get(activeServerId) ?? []) : []
+    activeServerId ? (s.members.get(activeServerId) ?? EMPTY_MEMBERS) : EMPTY_MEMBERS
   );
   const currentUser = useAuthStore((s) => s.currentUser);
   const serverEntry = useServersStore((s) =>

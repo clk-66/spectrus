@@ -27,7 +27,12 @@ function idToHue(id: string): number {
 
 export function ServerRail() {
   const { activeServerId, setActiveServerId, openServerSettings } = useUIStore();
-  const serverList = useServersStore((s) => s.serverList());
+  // Select the Map reference — only changes when the store actually mutates.
+  // Calling s.serverList() inside the selector returns a new Array on every
+  // invocation, which makes Object.is always return false and causes an
+  // infinite re-render loop.
+  const servers = useServersStore((s) => s.servers);
+  const serverList = Array.from(servers.values());
 
   return (
     <nav className={styles.rail} aria-label="Servers">
