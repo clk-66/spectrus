@@ -6,7 +6,7 @@ FROM node:22-alpine AS builder
 # mediasoup compiles a native C++ worker binary during npm install.
 # python3/make/cmake/g++ are the minimal toolchain; linux-headers provides
 # kernel API headers needed by libuv (a mediasoup dependency).
-RUN apk add --no-cache python3 make cmake g++ linux-headers
+RUN apk add --no-cache python3 py3-pip make cmake g++ linux-headers
 
 WORKDIR /app
 
