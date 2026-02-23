@@ -1,0 +1,64 @@
+/*
+ * Design tokens — CSS custom properties
+ * Applied via data-theme="dark"|"light" on <html>.
+ * Dark is the default (matches :root so no attribute required on first paint).
+ */
+
+:root,
+[data-theme="dark"] {
+  /* Backgrounds */
+  --bg-primary:   #0f0f10;
+  --bg-secondary: #161618;
+  --bg-tertiary:  #1c1c1f;
+  --bg-elevated:  #222226;
+
+  /* Borders */
+  --border: #2a2a2f;
+
+  /* Text */
+  --text-primary:   #f0f0f2;
+  --text-secondary: #8e8e99;
+  --text-muted:     #55555f;
+
+  /* Accent */
+  --accent:       #7c6af7;
+  --accent-hover: #6b59e8;
+
+  /* Semantic */
+  --danger:      #e05c5c;
+  --success:     #4caf7d;
+  --voice-active: #4caf7d;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="light"] {
+  /* Backgrounds */
+  --bg-primary:   #ffffff;
+  --bg-secondary: #f5f5f7;
+  --bg-tertiary:  #ebebed;
+  --bg-elevated:  #ffffff;
+
+  /* Borders */
+  --border: #e0e0e5;
+
+  /* Text */
+  --text-primary:   #0f0f10;
+  --text-secondary: #55555f;
+  --text-muted:     #8e8e99;
+
+  /* Accent */
+  --accent:       #6b59e8;
+  --accent-hover: #5a48d4;
+
+  /* Semantic */
+  --danger:       #e05c5c;
+  --success:      #4caf7d;
+  --voice-active: #4caf7d;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+}

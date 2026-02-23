@@ -1,0 +1,4 @@
+/* Entry point for the design system — import order matters */
+@import './tokens.css';
+@import './typography.css';
+@import './components.css';

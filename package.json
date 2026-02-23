@@ -1,0 +1,10 @@
+{
+  "name": "spectrus",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:client": "pnpm --filter @spectrus/client dev",
+    "dev:media": "pnpm --filter @spectrus/media dev",
+    "build:client": "pnpm --filter @spectrus/client build"
+  }
+}

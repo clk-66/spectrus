@@ -1,0 +1,10 @@
+version: '3.8'
+# Dev: runs only mediasoup. Start Go backend and React client separately.
+services:
+  media:
+    build:
+      context: ./media
+    network_mode: host
+    environment:
+      - MEDIASOUP_LISTEN_IP=127.0.0.1
+      - MEDIASOUP_ANNOUNCED_IP=127.0.0.1

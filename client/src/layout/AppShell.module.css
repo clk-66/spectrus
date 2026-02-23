@@ -1,0 +1,19 @@
+.shell {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-primary);
+
+  /* Smooth background/color transitions for theme switching */
+  transition: background-color 200ms ease;
+}
+
+/*
+ * On macOS with titleBarStyle: "Overlay", the WebView extends under the
+ * traffic-light buttons (≈ 28 px tall, conservatively 40 px padded).
+ * MacOSTitleBarGuard in App.tsx adds this class to <body> when appropriate.
+ */
+:global(body.tauri-macos) .shell {
+  padding-top: 40px;
+}

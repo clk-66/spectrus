@@ -1,0 +1,59 @@
+.wrapper {
+  display: contents; /* transparent wrapper — doesn't affect layout */
+}
+
+.tip {
+  position: fixed;
+  left: var(--tip-x);
+  top: var(--tip-y);
+  z-index: 9999;
+
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 5px 10px;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: var(--shadow-md);
+
+  /* Animate in */
+  animation: fadeIn 100ms ease forwards;
+}
+
+/* Anchor transform based on side */
+.tip.right  { transform: translateY(-50%); }
+.tip.left   { transform: translate(-100%, -50%); }
+.tip.top    { transform: translate(-50%, -100%); }
+.tip.bottom { transform: translateX(-50%); }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-50%) scale(0.95); }
+  to   { opacity: 1; transform: translateY(-50%) scale(1); }
+}
+
+/* Override animation for other sides */
+.tip.left {
+  animation-name: fadeInLeft;
+}
+.tip.top {
+  animation-name: fadeInTop;
+}
+.tip.bottom {
+  animation-name: fadeInBottom;
+}
+
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translate(-100%, -50%) scale(0.95); }
+  to   { opacity: 1; transform: translate(-100%, -50%) scale(1); }
+}
+@keyframes fadeInTop {
+  from { opacity: 0; transform: translate(-50%, -100%) scale(0.95); }
+  to   { opacity: 1; transform: translate(-50%, -100%) scale(1); }
+}
+@keyframes fadeInBottom {
+  from { opacity: 0; transform: translateX(-50%) scale(0.95); }
+  to   { opacity: 1; transform: translateX(-50%) scale(1); }
+}

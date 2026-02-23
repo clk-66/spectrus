@@ -1,0 +1,28 @@
+# Go
+server/bin/
+*.exe
+
+# Node
+node_modules/
+dist/
+.pnpm-store/
+
+# Data
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# Env
+.env
+
+# Tauri
+desktop/src-tauri/target/
+
+# IDE
+.vscode/
+.idea/
+*.DS_Store
+
+# Claude
+.claude/

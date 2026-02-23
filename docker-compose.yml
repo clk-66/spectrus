@@ -1,0 +1,87 @@
+version: '3.8'
+services:
+
+  # ---------------------------------------------------------------------------
+  # Go REST + WebSocket server
+  # ---------------------------------------------------------------------------
+  server:
+    build:
+      context: ./server
+    image: ghcr.io/clk-66/spectrus-server:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/data
+    environment:
+      - SPECTRUS_PORT=3000
+      - SPECTRUS_DB_PATH=/data/spectrus.db
+      - SPECTRUS_JWT_SECRET=${SPECTRUS_JWT_SECRET}
+      - SPECTRUS_DOMAIN=${SPECTRUS_DOMAIN}
+      - SPECTRUS_LICENSE_KEY=${SPECTRUS_LICENSE_KEY}
+      - SPECTRUS_KEYGEN_ACCOUNT_ID=${SPECTRUS_KEYGEN_ACCOUNT_ID}
+      # Internal URL the Go server uses to reach the media sidecar.
+      # With network_mode: host on the media service, localhost resolves correctly.
+      - SPECTRUS_MEDIA_URL=http://localhost:3001
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    depends_on:
+      media:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------------
+  # mediasoup WebRTC SFU microservice
+  #
+  # network_mode: host is intentional and required on Linux.
+  # mediasoup binds UDP ports directly on the host network stack so that ICE
+  # candidates contain real public IP addresses reachable by remote clients.
+  # On Docker Desktop (Mac / Windows) this setting is silently ignored because
+  # the VM's network is isolated — use a VPN or test on a real Linux host.
+  # ---------------------------------------------------------------------------
+  media:
+    build:
+      context: ./media
+    image: ghcr.io/clk-66/spectrus-media:latest
+    restart: unless-stopped
+    # See comment above — host networking is required for WebRTC ICE on Linux.
+    network_mode: host
+    environment:
+      - MEDIA_PORT=3001
+      - MEDIASOUP_LISTEN_IP=0.0.0.0
+      # Required: set to the server's public-facing IP address.
+      # Remote WebRTC clients use this to reach UDP media ports.
+      - MEDIASOUP_ANNOUNCED_IP=${MEDIASOUP_ANNOUNCED_IP}
+      - RTC_MIN_PORT=${RTC_MIN_PORT:-10000}
+      - RTC_MAX_PORT=${RTC_MAX_PORT:-10999}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+
+  # ---------------------------------------------------------------------------
+  # Litestream — continuous SQLite replication to S3/R2/GCS
+  # Start with: docker compose --profile backup up
+  # ---------------------------------------------------------------------------
+  litestream:
+    image: litestream/litestream
+    volumes:
+      - ./data:/data
+      - ./litestream.yml:/etc/litestream.yml
+    environment:
+      - LITESTREAM_ACCESS_KEY_ID=${LITESTREAM_ACCESS_KEY_ID}
+      - LITESTREAM_SECRET_ACCESS_KEY=${LITESTREAM_SECRET_ACCESS_KEY}
+    # DB file is created by the server container; litestream watches it.
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /data/spectrus.db"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    profiles:
+      - backup

@@ -1,0 +1,5 @@
+packages:
+  - 'client'
+  - 'desktop'
+  - 'media'
+  - 'shared'

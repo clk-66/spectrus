@@ -1,0 +1,143 @@
+.rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 56px;
+  min-width: 56px;
+  background: var(--bg-primary);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+  overflow-y: auto;
+  flex-shrink: 0;
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+
+/* Top separator pill */
+.separator {
+  width: 32px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--border);
+  margin: 8px 0 6px;
+  flex-shrink: 0;
+}
+
+.serverList {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.spacer {
+  flex: 1;
+  min-height: 8px;
+}
+
+.divider {
+  width: 32px;
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+  flex-shrink: 0;
+}
+
+.bottomPad {
+  height: 8px;
+  flex-shrink: 0;
+}
+
+/* ---- Server button ---- */
+
+.serverBtn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 4px 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Left-edge active indicator */
+.indicator {
+  position: absolute;
+  left: 0;
+  width: 3px;
+  background: var(--text-primary);
+  border-radius: 0 3px 3px 0;
+  transition: height 150ms ease, background-color 150ms ease;
+  height: 0;
+}
+
+.serverBtn:hover .indicator {
+  height: 18px;
+}
+
+.serverBtn.active .indicator {
+  height: 36px;
+  background: var(--accent);
+}
+
+/* ---- Server icon ---- */
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: border-radius 200ms ease, background-color 150ms ease;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  user-select: none;
+}
+
+.serverBtn:hover .icon,
+.serverBtn.active .icon {
+  border-radius: 14px;
+}
+
+/* Placeholder icon uses a hue-derived background */
+.iconPlaceholder {
+  background: hsl(var(--hue, 240) 45% 30%);
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+[data-theme="light"] .iconPlaceholder {
+  background: hsl(var(--hue, 240) 50% 55%);
+}
+
+/* ---- Action buttons (Add / Settings) ---- */
+
+.actionBtn .icon {
+  background: var(--bg-tertiary);
+  color: var(--success);
+  transition:
+    border-radius 200ms ease,
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.actionBtn:hover .icon {
+  background: var(--success);
+  color: #fff;
+  border-radius: 14px;
+}
+
+.settingsIcon {
+  color: var(--text-secondary) !important;
+}
+
+.actionBtn:hover .settingsIcon {
+  background: var(--accent) !important;
+  color: #fff !important;
+}

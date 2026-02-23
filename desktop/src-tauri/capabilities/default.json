@@ -1,0 +1,11 @@
+{
+  "identifier": "default",
+  "description": "Default capability — grants the webview access to all required Tauri APIs",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "deep-link:default",
+    "updater:default",
+    "process:default"
+  ]
+}

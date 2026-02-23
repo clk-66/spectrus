@@ -1,0 +1,250 @@
+/* =========================================================================
+   JoinServer.module.css
+   ========================================================================= */
+
+/* ---- Shared viewport / card shell -------------------------------------- */
+
+.viewport {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+  background: var(--bg-primary);
+  transition: background-color 200ms ease;
+}
+
+.card {
+  width: 380px;
+  max-width: 100%;
+  padding: 32px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.32);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0; /* children manage their own spacing */
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+
+[data-theme='light'] .card {
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.10);
+}
+
+/* ---- Loading state ------------------------------------------------------ */
+
+.loadingPulse {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  width: 100%;
+}
+
+.loadingCircle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.loadingBar {
+  height: 14px;
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.loadingBar:nth-child(2) { width: 55%;  animation-delay: 0.1s; }
+.loadingBar:nth-child(3) { width: 35%;  animation-delay: 0.2s; }
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.8; }
+}
+
+/* ---- Error / invalid invite states ------------------------------------- */
+
+.errorBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  text-align: center;
+  width: 100%;
+}
+
+.sadFace {
+  width: 72px;
+  height: 72px;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.errorTitle {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.errorDesc {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: var(--leading-relaxed);
+}
+
+.retryBtn {
+  margin-top: 4px;
+  height: 36px;
+  padding: 0 20px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background-color 100ms ease, color 100ms ease;
+}
+
+.retryBtn:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+/* ---- Server identity ---------------------------------------------------- */
+
+.serverIconWrap {
+  margin-bottom: 16px;
+}
+
+.serverIcon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.serverIconPlaceholder {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.serverName {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  text-align: center;
+  margin: 0 0 6px;
+  line-height: var(--leading-tight);
+  letter-spacing: -0.02em;
+}
+
+.memberCount {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  justify-content: center;
+}
+
+.memberDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  flex-shrink: 0;
+}
+
+/* ---- Divider ------------------------------------------------------------ */
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
+}
+
+/* ---- Description -------------------------------------------------------- */
+
+.description {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  text-align: center;
+  line-height: var(--leading-relaxed);
+  margin: 0 0 20px;
+  padding: 0 4px;
+}
+
+/* ---- Creator note ------------------------------------------------------- */
+
+.creatorNote {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-align: center;
+  margin: -12px 0 20px;
+}
+
+/* ---- Action button ------------------------------------------------------ */
+
+.actionBtn {
+  width: 100%;
+  height: 42px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background-color 120ms ease, opacity 120ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actionBtn:hover   { background: var(--accent-hover); }
+.actionBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.actionBtnOpen {
+  background: var(--success);
+}
+
+.actionBtnOpen:hover { opacity: 0.85; background: var(--success); }
+
+/* ---- Inline form error -------------------------------------------------- */
+
+.formError {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger) 25%, transparent);
+  border-radius: 6px;
+  font-size: var(--text-sm);
+  color: var(--danger);
+  line-height: var(--leading-normal);
+  text-align: center;
+}
